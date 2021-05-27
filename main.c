@@ -1,4 +1,9 @@
+#include "uart.h"
+
 void start_kernel(void)
 {
-    while (1);
+    uart_init();
+    uart_puts("hello world, XRTOS.\n");
+
+    while(1);
 }
