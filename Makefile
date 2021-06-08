@@ -15,10 +15,10 @@ OBJDUMP = ${CROSS_COMPILE}objdump
 	${CC} ${CFLAGS} -c -o $@ $<
 
 IMAGE = xrtos
-OBJS = start.o main.o uart.o
+OBJS = start.o main.o uart.o pages.o
 
 ${IMAGE} : ${OBJS}
-	${CC} $(CFLAGS) -Ttext=0x80000000 -o $@ $^
+	${CC} $(CFLAGS) -T xrtos.ld -o $@ $^
 
 run : ${IMAGE}
 	@${QEMU} ${QFLAGS} -kernel $<
