@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "pages.h"
+#include "bytes.h"
 
 void start_kernel(void)
 {
@@ -13,6 +14,11 @@ void start_kernel(void)
     *tmp = 0x12345678;
     *(tmp+1) = 0xaa;
     page_free(tmp);
+
+    byte_init();
+    tmp = byte_alloc(4);
+    *tmp = 0xaabbccdd;
+    byte_free(tmp, 4);
 
     while(1);
 }
