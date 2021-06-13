@@ -4,6 +4,9 @@ struct bytes {
     void *freelist;
 } bytes_cache[PAGE_ORDER];
 
+/*
+ * Initialize the freelist variable of different 2^order list
+ */
 void byte_init(void)
 {
     int order;
@@ -24,6 +27,11 @@ static inline uint32_t pow(uint32_t base, uint32_t order)
     return tmp;
 }
 
+/*
+ * Allocate bytes from different 2^order list
+ *
+ * nbytes: the number of byte for want to allocate
+ */
 void *byte_alloc(uint32_t nbytes)
 {
     void *tmp;
@@ -63,6 +71,12 @@ void *byte_alloc(uint32_t nbytes)
     return tmp;
 }
 
+/*
+ * Free bytes from different 2^order list
+ *
+ * p     : at-first address of byte for want to free
+ * nbytes: the number of byte for want to allocate
+ */
 void byte_free(void *p, uint32_t nbytes)
 {
     int order = 0;
