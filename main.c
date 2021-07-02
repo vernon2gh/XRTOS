@@ -2,6 +2,31 @@
 #include "print.h"
 #include "pages.h"
 #include "bytes.h"
+#include "sched.h"
+
+void delay(volatile int count)
+{
+	count *= 50000;
+	while (count--);
+}
+
+void task0(void)
+{
+    while (1) {
+        printf("task0 running...\n");
+        delay(2000);
+        schedule();
+    }
+}
+
+void task1(void)
+{
+    while (1) {
+        printf("task1 running...\n");
+        delay(2000);
+        schedule();
+    }
+}
 
 void start_kernel(void)
 {
@@ -24,6 +49,10 @@ void start_kernel(void)
     *tmp = 0xaabbccdd;
     printf("byte: %p = 0x%x\n", tmp, *tmp);
     byte_free(tmp, 4);
+
+    task_create(task0);
+    task_create(task1);
+    schedule();
 
     while(1);
 }

@@ -15,7 +15,7 @@ OBJDUMP = ${CROSS_COMPILE}objdump
 	${CC} ${CFLAGS} -c -o $@ $<
 
 IMAGE = xrtos
-OBJS = start.o main.o uart.o print.o pages.o bytes.o
+OBJS = start.o main.o uart.o print.o pages.o bytes.o sched.o
 
 ${IMAGE} : ${OBJS}
 	${CC} $(CFLAGS) -T xrtos.ld -o $@ $^
