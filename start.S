@@ -77,20 +77,19 @@
     .text
 _start:
     la  sp, stacks + STACK_SIZE # setup stack pointer
-    csrw mscratch, 0            # initialize mscratch to 0
     j   start_kernel            # entry C programme environment
 
 switch_to:
     csrrw t6, mscratch, t6  # save the previous task context pointer to t6
-    beqz t6, restore    	# if t6 == 0, now this is first task, without previous task,
-                        	# so no need to save previous task context, jump to label restore
-    reg_save t6         	# save the previous task context
+    beqz t6, restore        # if t6 == 0, now this is first task, without previous task,
+                            # so no need to save previous task context, jump to label restore
+    reg_save t6             # save the previous task context
 
 restore:
-    csrw mscratch, a0   	# restore mscratch from the next task context pointer
+    csrw mscratch, a0       # restore mscratch from the next task context pointer
     mv t6, a0
-    reg_restore t6      	# restore the next task context
-    ret                 	# running next task
+    reg_restore t6          # restore the next task context
+    ret                     # running next task
 
     .align 4                # the trap-vector base address must always be aligned on 4 byte boundary
 trap_vector:

@@ -7,8 +7,8 @@
 
 void delay(volatile int count)
 {
-	count *= 50000;
-	while (count--);
+    count *= 50000;
+    while (count--);
 }
 
 void task0(void)
@@ -59,6 +59,7 @@ void start_kernel(void)
 
     trap_init();
 
+    task_init();
     task_create(task0);
     task_create(task1);
     schedule();

@@ -2,6 +2,7 @@
 #define __SCHED_H__
 
 #include "types.h"
+#include "riscv.h"
 #include "print.h"
 
 #define MAX_TASKS   10
@@ -41,6 +42,7 @@ struct context {
 	reg_t t6;
 };
 
+void task_init(void);
 int task_create(void (*task)(void));
 int schedule(void);
 

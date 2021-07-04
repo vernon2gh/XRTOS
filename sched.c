@@ -8,6 +8,11 @@ static struct context task_context[MAX_TASKS];
 static int active_tasks = 0;
 static int current_task = -1;
 
+void task_init(void)
+{
+    mscratch_write(0); // initialize mscratch to 0
+}
+
 /*
  * create a task
  */
