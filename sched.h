@@ -7,8 +7,6 @@
 #define MAX_TASKS   10
 #define STACK_SIZE  1024
 
-typedef uint32_t reg_t;
-
 struct context {
 	reg_t ra;
 	reg_t sp;

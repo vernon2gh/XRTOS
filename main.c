@@ -3,6 +3,7 @@
 #include "pages.h"
 #include "bytes.h"
 #include "sched.h"
+#include "trap.h"
 
 void delay(volatile int count)
 {
@@ -12,8 +13,14 @@ void delay(volatile int count)
 
 void task0(void)
 {
+    int tmp;
+
     while (1) {
         printf("task0 running...\n");
+
+        *(int *)0x00000000 = 0xFF; // trap
+        tmp = *(int *)0x00000000;  //
+
         delay(2000);
         schedule();
     }
@@ -49,6 +56,8 @@ void start_kernel(void)
     *tmp = 0xaabbccdd;
     printf("byte: %p = 0x%x\n", tmp, *tmp);
     byte_free(tmp, 4);
+
+    trap_init();
 
     task_create(task0);
     task_create(task1);

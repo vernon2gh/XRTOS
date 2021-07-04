@@ -2,6 +2,7 @@
 
     .global _start
     .global switch_to
+    .global trap_vector
 
     # save all General-Purpose(GP) registers to task_context[]
     .macro reg_save base
@@ -90,6 +91,21 @@ restore:
     mv t6, a0
     reg_restore t6      	# restore the next task context
     ret                 	# running next task
+
+    .align 4                # the trap-vector base address must always be aligned on 4 byte boundary
+trap_vector:
+    csrr t6, mscratch       # save context
+    reg_save t6             #
+
+    csrr a0, mepc           # args 1, a0 = mepc
+    csrr a1, mcause         # args 2, a1 = mcause
+    call trap_handler       # enter the trap handler function on .c soure code
+    csrw mepc, a0           # return value a0, and than a0 copy to mepc
+
+    csrr t6, mscratch       # restore context
+    reg_restore t6          #
+
+    mret                    # return to whatever we were doing before trap
 
     # Read-only area
     # Store start and end address of each section.
