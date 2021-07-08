@@ -27,6 +27,7 @@ reg_t trap_handler(reg_t epc, reg_t cause)
                 break;
             case 11:
                 printf("Machine external interrupt\n");
+                plic_machine_external_interrupt();
                 break;
             default:
                 printf("unkown async trap!\n");

@@ -1,26 +1,5 @@
 #include "uart.h"
 
-#define UART0 0x10000000 // UART0 base address
-
-#define RHR 0 // Receive Holding Register (read mode)
-#define THR 0 // Transmit Holding Register (write mode)
-#define IER 1 // Interrupt Enable Register (write mode)
-
-#define DLL 0 // LSB of Divisor Latch (write mode)
-#define DLM 1 // MSB of Divisor Latch (write mode)
-
-#define FCR 2 // FIFO Control Register (write mode)
-#define ISR 2 // Interrupt Status Register (read mode)
-
-#define LCR 3 // Line Control Register
-#define MCR 4 // Modem Control Register
-#define LSR 5 // Line Status Register
-#define MSR 6 // Modem Status Register
-#define SPR 7 // ScratchPad Register
-
-#define uart_read(reg)          (*((volatile uint8_t *)(UART0 + reg)))
-#define uart_write(reg, val)    (*((volatile uint8_t *)(UART0 + reg)) = (val))
-
 void uart_init()
 {
     uint8_t tmp = 0;
@@ -47,12 +26,16 @@ void uart_init()
      */
     tmp = 0x03;
     uart_write(LCR, tmp);
+
+    /* Enable interrupts */
+    tmp = uart_read(IER);
+    uart_write(IER, tmp | IER_RX_INT);
 }
 
-void uart_putc(char ch)
+static void uart_putc(char ch)
 {
-    while(!(uart_read(LSR)&(0x01<<5))); // Whether the polling char `ch` is sent
-    uart_write(THR, ch);                // send char `ch`
+    while(!(uart_read(LSR) & LSR_TX_IDLE)); // Whether the polling char `ch` is sent
+    uart_write(THR, ch);                    // Transmit char `ch`
 }
 
 void uart_puts(char *s)
@@ -60,4 +43,26 @@ void uart_puts(char *s)
     while(*s) {
         uart_putc(*s++);
     }
+}
+
+static char uart_getc(void)
+{
+    char tmp;
+
+    if(uart_read(LSR) & LSR_RX_READY)
+        tmp = uart_read(RHR);   // Receive char
+    else
+        tmp = -1;
+
+    return tmp;
+}
+
+void uart_isr(void)
+{
+    char ch;
+
+    ch = uart_getc();
+
+    uart_putc(ch);
+    uart_putc('\n');
 }

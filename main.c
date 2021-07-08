@@ -4,6 +4,7 @@
 #include "bytes.h"
 #include "sched.h"
 #include "trap.h"
+#include "plic.h"
 
 void delay(volatile int count)
 {
@@ -18,8 +19,8 @@ void task0(void)
     while (1) {
         printf("task0 running...\n");
 
-        *(int *)0x00000000 = 0xFF; // trap
-        tmp = *(int *)0x00000000;  //
+        //*(int *)0x00000000 = 0xFF; // trap
+        //tmp = *(int *)0x00000000;  //
 
         delay(2000);
         schedule();
@@ -58,6 +59,7 @@ void start_kernel(void)
     byte_free(tmp, 4);
 
     trap_init();
+    plic_init();
 
     task_init();
     task_create(task0);

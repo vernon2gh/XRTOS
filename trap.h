@@ -4,6 +4,7 @@
 #include "types.h"
 #include "riscv.h"
 #include "print.h"
+#include "plic.h"
 
 void trap_init(void);
 
