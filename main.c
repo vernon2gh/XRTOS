@@ -5,6 +5,7 @@
 #include "sched.h"
 #include "trap.h"
 #include "plic.h"
+#include "timer.h"
 
 void delay(volatile int count)
 {
@@ -60,6 +61,7 @@ void start_kernel(void)
 
     trap_init();
     plic_init();
+    timer_init();
 
     task_init();
     task_create(task0);

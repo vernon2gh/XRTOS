@@ -24,6 +24,7 @@ reg_t trap_handler(reg_t epc, reg_t cause)
                 break;
             case 7:
                 printf("Machine timer interrupt\n");
+                timer_handler();
                 break;
             case 11:
                 printf("Machine external interrupt\n");

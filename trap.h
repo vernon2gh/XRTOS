@@ -5,6 +5,7 @@
 #include "riscv.h"
 #include "print.h"
 #include "plic.h"
+#include "timer.h"
 
 void trap_init(void);
 
