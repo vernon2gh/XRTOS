@@ -24,7 +24,7 @@ void task0(void)
         //tmp = *(int *)0x00000000;  //
 
         delay(2000);
-        schedule();
+        task_yield();
     }
 }
 
@@ -33,7 +33,7 @@ void task1(void)
     while (1) {
         printf("task1 running...\n");
         delay(2000);
-        schedule();
+        task_yield();
     }
 }
 
@@ -66,7 +66,7 @@ void start_kernel(void)
     task_init();
     task_create(task0);
     task_create(task1);
-    schedule();
+    task_yield();
 
     while(1);
 }

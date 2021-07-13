@@ -52,3 +52,8 @@ int schedule(void)
 
     return 0;
 }
+
+void task_yield(void)
+{
+    schedule();
+}

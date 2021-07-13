@@ -45,5 +45,6 @@ struct context {
 void task_init(void);
 int task_create(void (*task)(void));
 int schedule(void);
+void task_yield(void);
 
 #endif
