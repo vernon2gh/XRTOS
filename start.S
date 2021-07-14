@@ -77,24 +77,35 @@
     .text
 _start:
     la  sp, stacks + STACK_SIZE # setup stack pointer
-    j   start_kernel            # entry C programme environment
+
+    # to parepare the mstatus here for the first task
+    # default mstatus is 0
+    # mstatus.MPP = 3, still run in Machine-mode after MRET
+    # mstatus.MPIE = 1, will enable global interrupt after MRET
+    li t0, 3 << 11 | 1 << 7
+    csrr t1, mstatus
+    or t0, t0, t1
+    csrw mstatus, t0
+
+    j   start_kernel        # entry C programme environment
 
 switch_to:
-    csrrw t6, mscratch, t6  # save the previous task context pointer to t6
-    beqz t6, restore        # if t6 == 0, now this is first task, without previous task,
-                            # so no need to save previous task context, jump to label restore
-    reg_save t6             # save the previous task context
-
-restore:
     csrw mscratch, a0       # restore mscratch from the next task context pointer
+
+    lw t6, 124(a0)          # restore mepc from the context of the next task
+    csrw mepc, t6           #
     mv t6, a0
     reg_restore t6          # restore the next task context
-    ret                     # running next task
+
+    mret                    # running next task and enable global interrupt
 
     .align 4                # the trap-vector base address must always be aligned on 4 byte boundary
 trap_vector:
     csrr t6, mscratch       # save context
     reg_save t6             #
+
+    csrr a0, mepc           # save mepc to the context of the current task
+    sw a0, 124(t6)          #
 
     csrr a0, mepc           # args 1, a0 = mepc
     csrr a1, mcause         # args 2, a1 = mcause
@@ -104,7 +115,7 @@ trap_vector:
     csrr t6, mscratch       # restore context
     reg_restore t6          #
 
-    mret                    # return to whatever we were doing before trap
+    mret                    # return to whatever we were doing before trap and enable global interrupt
 
     # Read-only area
     # Store start and end address of each section.

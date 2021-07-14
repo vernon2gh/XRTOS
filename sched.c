@@ -10,7 +10,8 @@ static int current_task = -1;
 
 void task_init(void)
 {
-    mscratch_write(0); // initialize mscratch to 0
+    /* enable machine-mode software interrupts */
+    mie_write(mie_read() | MIE_MSIE);
 }
 
 /*
@@ -21,7 +22,7 @@ int task_create(void (*task)(void))
     if(active_tasks < MAX_TASKS)
     {
         task_context[active_tasks].sp = (reg_t)&task_stack[active_tasks][STACK_SIZE - 1];
-        task_context[active_tasks].ra = (reg_t)task;
+        task_context[active_tasks].epc = (reg_t)task;
         active_tasks++;
 
         return 0;
@@ -55,5 +56,10 @@ int schedule(void)
 
 void task_yield(void)
 {
-    schedule();
+    int hartid;
+
+    hartid = mhartid_read();
+
+    /* trigger a machine-level software interrupt */
+    clint_write(CLINT_MSIP(hartid), 1);
 }

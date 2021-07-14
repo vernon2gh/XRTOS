@@ -5,7 +5,8 @@
 #include "riscv.h"
 #include "print.h"
 #include "plic.h"
-#include "timer.h"
+#include "sched.h"
+#include "clint.h"
 
 void trap_init(void);
 

@@ -4,6 +4,7 @@
 #include "types.h"
 #include "riscv.h"
 #include "print.h"
+#include "clint.h"
 
 #define MAX_TASKS   10
 #define STACK_SIZE  1024
@@ -40,6 +41,8 @@ struct context {
 	reg_t t4;
 	reg_t t5;
 	reg_t t6;
+
+	reg_t epc;
 };
 
 void task_init(void);

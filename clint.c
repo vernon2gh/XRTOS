@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "clint.h"
 
 static void timer_interval(uint64_t interval)
 {
@@ -20,7 +20,7 @@ void timer_init(void)
     mie_write(mie_read() | MIE_MTIE);
 
     /* enable machine-mode global interrupts */
-    mstatus_write(mstatus_read() | MSTATUS_MIE);
+    // mstatus_write(mstatus_read() | MSTATUS_MIE);
 }
 
 void timer_handler(void)

@@ -10,6 +10,7 @@ void trap_init(void)
 reg_t trap_handler(reg_t epc, reg_t cause)
 {
     reg_t pc, cause_code, interrupt_exception;
+    int hartid;
 
     pc = epc;
     cause_code = cause & 0x7FFFFFFF;
@@ -21,10 +22,19 @@ reg_t trap_handler(reg_t epc, reg_t cause)
         switch(cause_code) {
             case 3:
                 printf("Machine software interrupt\n");
+
+                hartid = mhartid_read();
+                /* acknowledge a machine-level software interrupt */
+                clint_write(CLINT_MSIP(hartid), 0);
+                schedule();
+
                 break;
             case 7:
                 printf("Machine timer interrupt\n");
+
                 timer_handler();
+                schedule();
+
                 break;
             case 11:
                 printf("Machine external interrupt\n");

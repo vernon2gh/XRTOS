@@ -5,7 +5,7 @@
 #include "sched.h"
 #include "trap.h"
 #include "plic.h"
-#include "timer.h"
+#include "clint.h"
 
 void delay(volatile int count)
 {
@@ -17,6 +17,10 @@ void task0(void)
 {
     int tmp;
 
+    printf("task0 yield...\n");
+    task_yield();
+    printf("task0 back...\n");
+
     while (1) {
         printf("task0 running...\n");
 
@@ -24,7 +28,6 @@ void task0(void)
         //tmp = *(int *)0x00000000;  //
 
         delay(2000);
-        task_yield();
     }
 }
 
@@ -33,7 +36,6 @@ void task1(void)
     while (1) {
         printf("task1 running...\n");
         delay(2000);
-        task_yield();
     }
 }
 
@@ -66,7 +68,7 @@ void start_kernel(void)
     task_init();
     task_create(task0);
     task_create(task1);
-    task_yield();
+    schedule();
 
     while(1);
 }

@@ -19,7 +19,7 @@ void plic_init(void)
     mie_write(mie_read() | MIE_MEIE);
 
     /* enable machine-mode global interrupts */
-    mstatus_write(mstatus_read() | MSTATUS_MIE);
+    // mstatus_write(mstatus_read() | MSTATUS_MIE);
 }
 
 /*
