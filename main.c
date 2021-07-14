@@ -6,6 +6,7 @@
 #include "trap.h"
 #include "plic.h"
 #include "clint.h"
+#include "lock.h"
 
 void delay(volatile int count)
 {
@@ -16,6 +17,13 @@ void delay(volatile int count)
 void task0(void)
 {
     int tmp;
+
+    int_lock();
+    for(tmp=0; tmp<5; tmp++) {
+        printf("task0 lock: %d\n", tmp);
+        delay(4000);
+    }
+    int_unlock();
 
     printf("task0 yield...\n");
     task_yield();
@@ -33,6 +41,15 @@ void task0(void)
 
 void task1(void)
 {
+    int tmp;
+
+    int_lock();
+    for(tmp=0; tmp<5; tmp++) {
+        printf("task1 lock: %d\n", tmp);
+        delay(4000);
+    }
+    int_unlock();
+
     while (1) {
         printf("task1 running...\n");
         delay(2000);

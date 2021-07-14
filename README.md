@@ -8,3 +8,4 @@ This is XRTOS project, base RISC-V qemu virt machine, include function, as follo
 * running trap
 * external interrupt uart0 by PLIC device
 * hardware timer
+* interrupt lock
