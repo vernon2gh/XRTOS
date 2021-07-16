@@ -1,4 +1,7 @@
 #include "clint.h"
+#include "swtimer.h"
+
+uint32_t system_ticks = 0;
 
 static void timer_interval(uint64_t interval)
 {
@@ -25,9 +28,9 @@ void timer_init(void)
 
 void timer_handler(void)
 {
-    static uint32_t ticks = 0;
+    printf("ticks: %d\n", ++system_ticks);
 
-    printf("ticks: %d\n", ++ticks);
+    swtimer_check();
 
     /* set interval for next timer interrupt */
     timer_interval(TIMER_INTERVAL);

@@ -7,11 +7,17 @@
 #include "plic.h"
 #include "clint.h"
 #include "lock.h"
+#include "swtimer.h"
 
 void delay(volatile int count)
 {
     count *= 50000;
     while (count--);
+}
+
+void swtimer_func(uint32_t arg)
+{
+    printf("swtimer%d running...\n", arg);
 }
 
 void task0(void)
@@ -28,6 +34,8 @@ void task0(void)
     printf("task0 yield...\n");
     task_yield();
     printf("task0 back...\n");
+
+    swtimer_create(swtimer_func, 3, second_to_ticks(1));
 
     while (1) {
         printf("task0 running...\n");
@@ -59,6 +67,7 @@ void task1(void)
 void start_kernel(void)
 {
     uint32_t *tmp;
+    struct swtimer *swtimer;
 
     uart_init();
     uart_puts("hello world, XRTOS.\n");
@@ -81,6 +90,14 @@ void start_kernel(void)
     trap_init();
     plic_init();
     timer_init();
+
+    swtimer_init();
+    swtimer = swtimer_create(swtimer_func, 1, second_to_ticks(1));
+    if(swtimer == NULL)
+        printf("software timer overout...\n");
+    swtimer = swtimer_create(swtimer_func, 2, second_to_ticks(5));
+    if(swtimer == NULL)
+        printf("software timer overout...\n");
 
     task_init();
     task_create(task0);
