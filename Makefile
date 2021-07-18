@@ -14,7 +14,7 @@ OBJDUMP = ${CROSS_COMPILE}objdump
 %.o : %.S
 	${CC} ${CFLAGS} -c -o $@ $<
 
-IMAGE = xrtos
+IMAGE = xos
 OBJS = start.o \
 		main.o \
 		uart.o \
@@ -31,7 +31,7 @@ OBJS = start.o \
 		user_syscall.o
 
 ${IMAGE} : ${OBJS}
-	${CC} $(CFLAGS) -T xrtos.ld -o $@ $^
+	${CC} $(CFLAGS) -T ${IMAGE}.ld -o $@ $^
 
 run : ${IMAGE}
 	@${QEMU} ${QFLAGS} -kernel $<
