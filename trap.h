@@ -7,6 +7,7 @@
 #include "plic.h"
 #include "sched.h"
 #include "clint.h"
+#include "syscall.h"
 
 void trap_init(void);
 

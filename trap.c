@@ -7,7 +7,7 @@ void trap_init(void)
     mtvec_write((reg_t)trap_vector); // set the trap-vector base address for machine mode
 }
 
-reg_t trap_handler(reg_t epc, reg_t cause)
+reg_t trap_handler(reg_t epc, reg_t cause, struct context *context)
 {
     reg_t pc, cause_code, interrupt_exception;
     int hartid;
@@ -50,17 +50,22 @@ reg_t trap_handler(reg_t epc, reg_t cause)
         switch(cause_code) {
             case 5:
                 printf("Load access fault\n");
+                while(1);
                 break;
             case 7:
                 printf("Store/AMO access fault\n");
+                while(1);
+                break;
+            case 8:
+                printf("System call from User-mode level\n");
+                do_syscall(context);
+                pc += 4;
                 break;
             default:
                 printf("unkown sync trap!\n");
+                while(1);
                 break;
         }
-
-        //pc += 4;
-        while(1);
     }
 
     return pc;

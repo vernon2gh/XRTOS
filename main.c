@@ -9,6 +9,8 @@
 #include "lock.h"
 #include "swtimer.h"
 
+#include "user_syscall.h"
+
 void delay(volatile int count)
 {
     count *= 50000;
@@ -20,25 +22,25 @@ void swtimer_func(uint32_t arg)
     printf("swtimer%d running...\n", arg);
 }
 
-void task0(void)
+void kernel_task0(void)
 {
     int tmp;
 
     int_lock();
     for(tmp=0; tmp<5; tmp++) {
-        printf("task0 lock: %d\n", tmp);
+        printf("kernel_task0 lock: %d\n", tmp);
         delay(4000);
     }
     int_unlock();
 
-    printf("task0 yield...\n");
+    printf("kernel_task0 yield...\n");
     task_yield();
-    printf("task0 back...\n");
+    printf("kernel_task0 back...\n");
 
     swtimer_create(swtimer_func, 3, second_to_ticks(1));
 
     while (1) {
-        printf("task0 running...\n");
+        printf("kernel_task0 running...\n");
 
         //*(int *)0x00000000 = 0xFF; // trap
         //tmp = *(int *)0x00000000;  //
@@ -47,19 +49,53 @@ void task0(void)
     }
 }
 
-void task1(void)
+void kernel_task1(void)
 {
     int tmp;
 
     int_lock();
     for(tmp=0; tmp<5; tmp++) {
-        printf("task1 lock: %d\n", tmp);
+        printf("kernel_task1 lock: %d\n", tmp);
         delay(4000);
     }
     int_unlock();
 
     while (1) {
-        printf("task1 running...\n");
+        printf("kernel_task1 running...\n");
+        delay(2000);
+    }
+}
+
+void user_task0(void)
+{
+    int tmp;
+    int hartid;
+
+    /*
+     * Can't read mhardid from User-mode level,
+     * If want to read mhardid, by syscall only.
+     */
+    // hartid = mhartid_read();
+    // printf("hart id is %d\n", hartid);
+
+    tmp = get_hartid(&hartid);
+    if(!tmp) {
+        printf("hard id = %d\n", hartid);
+    }
+    else {
+        printf("get_hardid failed! Error Value = %d\n", tmp);
+    }
+
+    while (1) {
+        printf("user_task0 running...\n");
+        delay(2000);
+    }
+}
+
+void user_task1(void)
+{
+    while (1) {
+        printf("user_task1 running...\n");
         delay(2000);
     }
 }
@@ -100,8 +136,13 @@ void start_kernel(void)
         printf("software timer overout...\n");
 
     task_init();
-    task_create(task0);
-    task_create(task1);
+#ifdef CONFIG_USER_MODE
+    task_create(user_task0);
+    task_create(user_task1);
+#else
+    task_create(kernel_task0);
+    task_create(kernel_task1);
+#endif
     schedule();
 
     while(1);

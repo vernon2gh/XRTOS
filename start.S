@@ -80,9 +80,15 @@ _start:
 
     # to parepare the mstatus here for the first task
     # default mstatus is 0
-    # mstatus.MPP = 3, still run in Machine-mode after MRET
-    # mstatus.MPIE = 1, will enable global interrupt after MRET
+#ifdef CONFIG_USER_MODE
+    # mstatus.MPP = 0, run in User-mode after first MRET operating
+    # mstatus.MPIE = 1, enable global interrupt after first MRET operating
+    li t0, 1 << 7
+#else
+    # mstatus.MPP = 3, run in Machine-mode after first MRET operating
+    # mstatus.MPIE = 1, enable global interrupt after first MRET operating
     li t0, 3 << 11 | 1 << 7
+#endif
     csrr t1, mstatus
     or t0, t0, t1
     csrw mstatus, t0
@@ -97,7 +103,8 @@ switch_to:
     mv t6, a0
     reg_restore t6          # restore the next task context
 
-    mret                    # running next task and enable global interrupt
+    mret                    # running next task in mstatus.MPP level
+                            # and restore mstatus.MPIE to mstatus.MIE
 
     .align 4                # the trap-vector base address must always be aligned on 4 byte boundary
 trap_vector:
@@ -109,13 +116,15 @@ trap_vector:
 
     csrr a0, mepc           # args 1, a0 = mepc
     csrr a1, mcause         # args 2, a1 = mcause
+    csrr a2, mscratch       # args 3, a2 = mscratch
     call trap_handler       # enter the trap handler function on .c soure code
     csrw mepc, a0           # return value a0, and than a0 copy to mepc
 
     csrr t6, mscratch       # restore context
     reg_restore t6          #
 
-    mret                    # return to whatever we were doing before trap and enable global interrupt
+    mret                    # return to whatever we were doing before trap in mstatus.MPP level
+                            # and restore mstatus.MPIE to mstatus.MIE
 
     # Read-only area
     # Store start and end address of each section.

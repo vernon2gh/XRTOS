@@ -1,5 +1,5 @@
 CROSS_COMPILE = riscv64-unknown-elf-
-CFLAGS = -nostdlib -fno-builtin -march=rv32ima -mabi=ilp32 -g -Wall
+CFLAGS = -nostdlib -fno-builtin -march=rv32ima -mabi=ilp32 -g -Wall -D CONFIG_USER_MODE
 
 QEMU = qemu-system-riscv32
 QFLAGS = -nographic -smp 1 -machine virt -bios none
@@ -26,7 +26,9 @@ OBJS = start.o \
 		plic.o \
 		clint.o \
 		lock.o \
-		swtimer.o
+		swtimer.o \
+		syscall.o \
+		user_syscall.o
 
 ${IMAGE} : ${OBJS}
 	${CC} $(CFLAGS) -T xrtos.ld -o $@ $^

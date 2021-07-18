@@ -1,4 +1,4 @@
-This is XRTOS project, base RISC-V qemu virt machine, include function, as follow:
+This is XOS project, base RISC-V qemu virt machine, include function, as follow:
 
 * Allocated pages managed by array
 * Allocated bytes managed by list
@@ -10,3 +10,4 @@ This is XRTOS project, base RISC-V qemu virt machine, include function, as follo
 * hardware timer
 * software timer
 * interrupt lock
+* syscall from User-mode level
