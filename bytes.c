@@ -38,11 +38,11 @@ void *byte_alloc(uint32_t nbytes)
     uint32_t step, num, current;
     int order = 0, i;
 
-    while(nbytes /= 2)
+    while(nbytes / pow(2, order))
         order++;
 
     if(order >= PAGE_ORDER) {
-        i = nbytes/PAGE_SIZE + nbytes%PAGE_SIZE? 1:0;
+        i = (nbytes/PAGE_SIZE) + (nbytes%PAGE_SIZE? 1:0);
 
         return page_alloc(i);
     }
