@@ -2,35 +2,61 @@
 
 extern void switch_to(struct context *next);
 
-static uint8_t task_stack[MAX_TASKS][STACK_SIZE];
-static struct context task_context[MAX_TASKS];
-
-static int active_tasks = 0;
-static int current_task = -1;
+static struct task *current_task; // alway point current task pointer
 
 void task_init(void)
 {
     /* enable machine-mode software interrupts */
     mie_write(mie_read() | MIE_MSIE);
+
+    /* init current task */
+    current_task = NULL;
 }
 
 /*
  * create a task
+ *
+ * Parameter:
+ * func     -> Pointer of task function
+ *
+ * Return:
+ * If the task is created successfully, 0 is returned;
+ * otherwise, -1 is returned
  */
-int task_create(void (*task)(void))
+int task_create(void (*func)(void))
 {
-    if(active_tasks < MAX_TASKS)
-    {
-        task_context[active_tasks].sp = (reg_t)&task_stack[active_tasks][STACK_SIZE - 1];
-        task_context[active_tasks].epc = (reg_t)task;
-        active_tasks++;
+    struct task *task;
+    struct context *ctx;
 
-        return 0;
+    task = byte_alloc(sizeof(struct task));
+
+    ctx = &task->ctx;
+    ctx->sp = (reg_t)(task->stack + (STACK_SIZE - 1));
+    ctx->epc = (reg_t)func;
+
+    if(current_task == NULL) {
+        task->next = task;
+        task->prev = task;
+        task->flag = TASK_FIRST;
+        current_task = task;
     }
-    else
-    {
-        return -1;
+    else {
+        task->next = current_task;
+        task->prev = current_task->prev;
+        current_task->prev->next = task;
+        current_task->prev = task;
     }
+
+    return 0;
+}
+
+/*
+ * delete a task
+ */
+void task_exit(void)
+{
+    current_task->flag = TASK_DELETED;
+    task_yield();
 }
 
 /*
@@ -40,16 +66,32 @@ int task_create(void (*task)(void))
  */
 int schedule(void)
 {
-    struct context *next;
+    struct task *task;
+    struct context *context;
 
-    if(active_tasks <= 0) {
-        printf("There is no task to perform!\n");
-        return -1;
+    switch(current_task->flag) {
+        case TASK_FIRST:
+            current_task->flag &= ~TASK_FIRST;
+            break;
+
+        case TASK_DELETED:
+            task = current_task;
+            current_task = task->next;
+
+            task->prev->next = current_task;
+            current_task->prev = task->prev;
+            byte_free(task, sizeof(struct task));
+            break;
+
+        case TASK_RUNNING:
+        default:
+            task = current_task;
+            current_task = task->next;
     }
 
-    current_task = (current_task + 1) % active_tasks;
-    next = &task_context[current_task];
-    switch_to(next);
+    context = &current_task->ctx;
+    current_task->flag |= TASK_RUNNING;
+    switch_to(context);
 
     return 0;
 }
@@ -58,7 +100,12 @@ void task_yield(void)
 {
     int hartid;
 
+#ifdef CONFIG_USER_MODE
+    #include "user_syscall.h"
+    get_hartid(&hartid);
+#else
     hartid = mhartid_read();
+#endif
 
     /* trigger a machine-level software interrupt */
     clint_write(CLINT_MSIP(hartid), 1);

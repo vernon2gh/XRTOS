@@ -89,6 +89,7 @@ void user_task0(void)
     while (1) {
         printf("user_task0 running...\n");
         delay(2000);
+        task_exit();
     }
 }
 
@@ -106,7 +107,7 @@ void start_kernel(void)
     struct swtimer *swtimer;
 
     uart_init();
-    uart_puts("hello world, XRTOS.\n");
+    uart_puts("hello world, XOS.\n");
     printf("hello word, printf\n");
 
     page_init();

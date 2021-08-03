@@ -5,9 +5,14 @@
 #include "riscv.h"
 #include "print.h"
 #include "clint.h"
+#include "bytes.h"
 
-#define MAX_TASKS   10
 #define STACK_SIZE  1024
+
+#define TASK_FIRST      0x01
+#define TASK_LAST       0x02
+#define TASK_RUNNING    0x04
+#define TASK_DELETED    0x08
 
 struct context {
 	reg_t ra;
@@ -45,8 +50,18 @@ struct context {
 	reg_t epc;
 };
 
+struct task {
+	struct context ctx;
+	uint8_t stack[STACK_SIZE];
+	uint8_t flag;
+
+	struct task *prev;
+	struct task *next;
+};
+
 void task_init(void);
 int task_create(void (*task)(void));
+void task_exit(void);
 int schedule(void);
 void task_yield(void);
 
