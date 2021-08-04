@@ -13,19 +13,30 @@ void task_init(void)
     current_task = NULL;
 }
 
+static void task_add(struct task *new, struct task *prev, struct task *next)
+{
+    new->prev = prev;
+    new->next = next;
+    prev->next = new;
+    next->prev = new;
+}
+
 /*
  * create a task
  *
  * Parameter:
  * func     -> Pointer of task function
+ * param    -> Parameter of task function
+ * priority -> Priority of task function,
+ *             rang is [0, 255], 0 is highest priority level
  *
  * Return:
  * If the task is created successfully, 0 is returned;
  * otherwise, -1 is returned
  */
-int task_create(void (*func)(void))
+int task_create(void (*func)(void *), void *param, uint8_t priority)
 {
-    struct task *task;
+    struct task *task, *tmp;
     struct context *ctx;
 
     task = byte_alloc(sizeof(struct task));
@@ -33,19 +44,34 @@ int task_create(void (*func)(void))
     ctx = &task->ctx;
     ctx->sp = (reg_t)(task->stack + (STACK_SIZE - 1));
     ctx->epc = (reg_t)func;
+    ctx->a0 = (reg_t)param;
 
     if(current_task == NULL) {
         task->next = task;
         task->prev = task;
         task->flag = TASK_FIRST;
         current_task = task;
+    } else {
+        tmp = current_task;
+
+        do {
+            if(current_task->priority > priority) {
+                current_task->flag &= ~TASK_FIRST;
+                task->flag = TASK_FIRST;
+                current_task = task;
+                break;
+            }
+            if(current_task->prev->priority < priority) {
+                break;
+            }
+
+            tmp = tmp->next;
+        } while(!((tmp->prev->priority < priority)&&(priority < tmp->priority)));
+
+        task_add(task, tmp->prev, tmp);
     }
-    else {
-        task->next = current_task;
-        task->prev = current_task->prev;
-        current_task->prev->next = task;
-        current_task->prev = task;
-    }
+
+    task->priority = priority;
 
     return 0;
 }

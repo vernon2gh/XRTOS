@@ -22,7 +22,7 @@ void swtimer_func(uint32_t arg)
     printf("swtimer%d running...\n", arg);
 }
 
-void kernel_task0(void)
+void kernel_task0(void *param)
 {
     int tmp;
 
@@ -49,7 +49,7 @@ void kernel_task0(void)
     }
 }
 
-void kernel_task1(void)
+void kernel_task1(void *param)
 {
     int tmp;
 
@@ -66,10 +66,12 @@ void kernel_task1(void)
     }
 }
 
-void user_task0(void)
+void user_task0(void *param)
 {
     int tmp;
     int hartid;
+
+    printf("%s: param = %p\n", __func__, param);
 
     /*
      * Can't read mhardid from User-mode level,
@@ -87,16 +89,18 @@ void user_task0(void)
     }
 
     while (1) {
-        printf("user_task0 running...\n");
+        printf("%s: running...\n", __func__);
         delay(2000);
         task_exit();
     }
 }
 
-void user_task1(void)
+void user_task1(void *param)
 {
+    printf("%s: param = %p\n", __func__, param);
+
     while (1) {
-        printf("user_task1 running...\n");
+        printf("%s: running...\n", __func__);
         delay(2000);
     }
 }
@@ -138,11 +142,11 @@ void start_kernel(void)
 
     task_init();
 #ifdef CONFIG_USER_MODE
-    task_create(user_task0);
-    task_create(user_task1);
+    task_create(user_task0, (void *)0x00, 255);
+    task_create(user_task1, (void *)0x01, 0);
 #else
-    task_create(kernel_task0);
-    task_create(kernel_task1);
+    task_create(kernel_task0, NULL, 255);
+    task_create(kernel_task1, NULL, 255);
 #endif
     schedule();
 

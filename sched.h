@@ -54,13 +54,14 @@ struct task {
 	struct context ctx;
 	uint8_t stack[STACK_SIZE];
 	uint8_t flag;
+	uint8_t priority;
 
 	struct task *prev;
 	struct task *next;
 };
 
 void task_init(void);
-int task_create(void (*task)(void));
+int task_create(void (*func)(void *), void *param, uint8_t priority);
 void task_exit(void);
 int schedule(void);
 void task_yield(void);
