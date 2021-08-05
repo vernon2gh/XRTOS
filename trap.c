@@ -27,19 +27,19 @@ reg_t trap_handler(reg_t epc, reg_t cause, struct context *context)
                 /* acknowledge a machine-level software interrupt */
                 clint_write(CLINT_MSIP(hartid), 0);
                 schedule();
-
                 break;
+
             case 7:
                 printf("Machine timer interrupt\n");
 
                 timer_handler();
-                schedule();
-
                 break;
+
             case 11:
                 printf("Machine external interrupt\n");
                 plic_machine_external_interrupt();
                 break;
+
             default:
                 printf("unkown async trap!\n");
                 break;

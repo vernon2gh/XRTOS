@@ -29,12 +29,13 @@ static void task_add(struct task *new, struct task *prev, struct task *next)
  * param    -> Parameter of task function
  * priority -> Priority of task function,
  *             rang is [0, 255], 0 is highest priority level
+ * timeslice-> task maximum running time, unit: tick
  *
  * Return:
  * If the task is created successfully, 0 is returned;
  * otherwise, -1 is returned
  */
-int task_create(void (*func)(void *), void *param, uint8_t priority)
+int task_create(void (*func)(void *), void *param, uint8_t priority, uint32_t timeslice)
 {
     struct task *task, *tmp;
     struct context *ctx;
@@ -72,6 +73,7 @@ int task_create(void (*func)(void *), void *param, uint8_t priority)
     }
 
     task->priority = priority;
+    task->timeslice = timeslice;
 
     return 0;
 }
@@ -117,6 +119,7 @@ int schedule(void)
 
     context = &current_task->ctx;
     current_task->flag |= TASK_RUNNING;
+    current_task->timeout = system_ticks + current_task->timeslice;
     switch_to(context);
 
     return 0;
@@ -135,4 +138,13 @@ void task_yield(void)
 
     /* trigger a machine-level software interrupt */
     clint_write(CLINT_MSIP(hartid), 1);
+}
+
+/*
+ * check task running time whether timeout
+ */
+void task_check_timeout(void)
+{
+    if(system_ticks >= current_task->timeout)
+        schedule();
 }

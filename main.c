@@ -142,11 +142,11 @@ void start_kernel(void)
 
     task_init();
 #ifdef CONFIG_USER_MODE
-    task_create(user_task0, (void *)0x00, 255);
-    task_create(user_task1, (void *)0x01, 0);
+    task_create(user_task0, (void *)0x00, 255, second_to_ticks(1));
+    task_create(user_task1, (void *)0x01, 0, second_to_ticks(2));
 #else
-    task_create(kernel_task0, NULL, 255);
-    task_create(kernel_task1, NULL, 255);
+    task_create(kernel_task0, NULL, 255, second_to_ticks(1));
+    task_create(kernel_task1, NULL, 255, second_to_ticks(1));
 #endif
     schedule();
 

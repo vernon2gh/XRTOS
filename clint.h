@@ -26,7 +26,7 @@
 #define timer_read(reg)         (*(volatile uint64_t *)(CLINT_BASE + reg))
 #define timer_write(reg, val)   (*(volatile uint64_t *)(CLINT_BASE + reg) = val)
 
-extern uint32_t system_ticks;   // tick number after bringup system
+extern uint32_t system_ticks;
 
 void timer_init(void);
 void timer_handler(void);

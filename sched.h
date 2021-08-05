@@ -55,15 +55,18 @@ struct task {
 	uint8_t stack[STACK_SIZE];
 	uint8_t flag;
 	uint8_t priority;
+	uint32_t timeslice;
+	uint32_t timeout;
 
 	struct task *prev;
 	struct task *next;
 };
 
 void task_init(void);
-int task_create(void (*func)(void *), void *param, uint8_t priority);
+int task_create(void (*func)(void *), void *param, uint8_t priority, uint32_t timeslice);
 void task_exit(void);
 int schedule(void);
 void task_yield(void);
+void task_check_timeout(void);
 
 #endif
