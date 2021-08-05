@@ -17,9 +17,9 @@ void delay(volatile int count)
     while (count--);
 }
 
-void swtimer_func(uint32_t arg)
+void swtimer_func(void *arg)
 {
-    printf("swtimer%d running...\n", arg);
+    printf("swtimer%d running...\n", (int)arg);
 }
 
 void kernel_task0(void *param)
@@ -37,7 +37,7 @@ void kernel_task0(void *param)
     task_yield();
     printf("kernel_task0 back...\n");
 
-    swtimer_create(swtimer_func, 3, second_to_ticks(1));
+    swtimer_create(swtimer_func, (void *)3, second_to_ticks(1));
 
     while (1) {
         printf("kernel_task0 running...\n");
@@ -133,10 +133,10 @@ void start_kernel(void)
     timer_init();
 
     swtimer_init();
-    swtimer = swtimer_create(swtimer_func, 1, second_to_ticks(1));
+    swtimer = swtimer_create(swtimer_func, (void *)1, second_to_ticks(1));
     if(swtimer == NULL)
         printf("software timer overout...\n");
-    swtimer = swtimer_create(swtimer_func, 2, second_to_ticks(5));
+    swtimer = swtimer_create(swtimer_func, (void *)2, second_to_ticks(5));
     if(swtimer == NULL)
         printf("software timer overout...\n");
 

@@ -7,9 +7,9 @@
  * software timer
  */
 struct swtimer {
-    void (*func)(uint32_t);
-    uint32_t arg;
-    uint32_t timeout_ticks;
+    void (*func)(void *);
+    void *arg;
+    uint32_t timeout;
 };
 
 #define MAX_SWTIMER 10
@@ -18,7 +18,7 @@ struct swtimer {
 #define ticks_to_second(ticks)  (ticks / SYSTEM_TICKS)
 
 void swtimer_init(void);
-struct swtimer *swtimer_create(void (*func)(uint32_t), uint32_t arg, uint32_t timeout_ticks);
+struct swtimer *swtimer_create(void (*func)(void *), void *arg, uint32_t timeout);
 void swtimer_delete(struct swtimer *swtimer);
 void swtimer_check(void);
 
