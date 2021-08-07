@@ -2,7 +2,7 @@
 
 extern void switch_to(struct context *next);
 
-static struct task *current_task; // alway point current task pointer
+static struct task *current_task; // alway point current task
 
 void task_init(void)
 {
@@ -104,10 +104,13 @@ int schedule(void)
 
         case TASK_DELETED:
             task = current_task;
-            current_task = task->next;
+            if(task == task->next)
+                current_task = NULL;
+            else
+                current_task = task->next;
 
-            task->prev->next = current_task;
-            current_task->prev = task->prev;
+            task->prev->next = task->next;
+            task->next->prev = task->prev;
             byte_free(task, sizeof(struct task));
             break;
 
