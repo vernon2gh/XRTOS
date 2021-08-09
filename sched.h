@@ -10,9 +10,10 @@
 #define STACK_SIZE  1024
 
 #define TASK_FIRST      0x01
-#define TASK_LAST       0x02
+#define TASK_READY      0x02
 #define TASK_RUNNING    0x04
 #define TASK_DELETED    0x08
+#define TASK_SLEEPING   0x10
 
 struct context {
 	reg_t ra;
@@ -66,6 +67,7 @@ void task_init(void);
 int task_create(void (*func)(void *), void *param, uint8_t priority, uint32_t timeslice);
 void task_exit(void);
 int schedule(void);
+int task_delay(uint32_t time);
 void task_yield(void);
 void task_check_timeout(void);
 

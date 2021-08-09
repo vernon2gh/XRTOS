@@ -1,4 +1,5 @@
 #include "sched.h"
+#include "swtimer.h"
 
 extern void switch_to(struct context *next);
 
@@ -21,6 +22,12 @@ static void task_add(struct task *new, struct task *prev, struct task *next)
     next->prev = new;
 }
 
+static void task_delete(struct task *entry)
+{
+    entry->prev->next = entry->next;
+    entry->next->prev = entry->prev;
+}
+
 /*
  * create a task
  *
@@ -41,6 +48,9 @@ int task_create(void (*func)(void *), void *param, uint8_t priority, uint32_t ti
     struct context *ctx;
 
     task = byte_alloc(sizeof(struct task));
+    task->flag = TASK_READY;
+    task->priority = priority;
+    task->timeslice = timeslice;
 
     ctx = &task->ctx;
     ctx->sp = (reg_t)(task->stack + (STACK_SIZE - 1));
@@ -56,24 +66,21 @@ int task_create(void (*func)(void *), void *param, uint8_t priority, uint32_t ti
         tmp = current_task;
 
         do {
-            if(current_task->priority > priority) {
-                current_task->flag &= ~TASK_FIRST;
+            if(current_task->priority >= priority) {
+                current_task->flag = TASK_READY;
                 task->flag = TASK_FIRST;
                 current_task = task;
                 break;
             }
-            if(current_task->prev->priority < priority) {
+            if(current_task->prev->priority <= priority) {
                 break;
             }
 
             tmp = tmp->next;
-        } while(!((tmp->prev->priority < priority)&&(priority < tmp->priority)));
+        } while(!((tmp->prev->priority <= priority)&&(priority <= tmp->priority)));
 
         task_add(task, tmp->prev, tmp);
     }
-
-    task->priority = priority;
-    task->timeslice = timeslice;
 
     return 0;
 }
@@ -94,36 +101,70 @@ void task_exit(void)
  */
 int schedule(void)
 {
-    struct task *task;
+    struct task *task, *tmp;
     struct context *context;
 
-    switch(current_task->flag) {
-        case TASK_FIRST:
-            current_task->flag &= ~TASK_FIRST;
-            break;
+    task = current_task;
 
+    if(task->flag != TASK_FIRST) {
+        tmp = task->next;
+        while(tmp->flag == TASK_SLEEPING)
+            tmp = tmp->next;
+
+        current_task = tmp;
+    }
+
+    switch(task->flag) {
         case TASK_DELETED:
-            task = current_task;
-            if(task == task->next)
-                current_task = NULL;
-            else
-                current_task = task->next;
-
-            task->prev->next = task->next;
-            task->next->prev = task->prev;
+            task_delete(task);
             byte_free(task, sizeof(struct task));
             break;
 
+        case TASK_SLEEPING:
+            break;
+
+        case TASK_FIRST:
+        case TASK_READY:
         case TASK_RUNNING:
         default:
-            task = current_task;
-            current_task = task->next;
+            task->flag = TASK_READY;
     }
 
     context = &current_task->ctx;
-    current_task->flag |= TASK_RUNNING;
+    current_task->flag = TASK_RUNNING;
     current_task->timeout = system_ticks + current_task->timeslice;
     switch_to(context);
+
+    return 0;
+}
+
+static void task_wakeup(void *arg)
+{
+    struct task *task;
+
+    task = (struct task*)arg;
+    task->flag = TASK_READY;
+}
+
+/*
+ * make task to sleep
+ *
+ * Parameter:
+ * time -> task sleep time, unit: tick
+ *
+ * Return:
+ * If successfully, 0 is returned;
+ * otherwise, -1 is returned
+ */
+int task_delay(uint32_t time)
+{
+    struct task *task;
+
+    task = current_task;
+    task->flag = TASK_SLEEPING;
+
+    swtimer_create(task_wakeup, (void *)task, time);
+    task_yield();
 
     return 0;
 }
