@@ -32,8 +32,10 @@ static void swtimer_add(struct swtimer *new, struct swtimer *prev, struct swtime
 struct swtimer *swtimer_create(void (*func)(void *), void *arg, uint32_t timeout)
 {
     struct swtimer *swtimer, *tmp;
+    uint32_t __timeout;
 
     swtimer = byte_alloc(sizeof(struct swtimer));
+    __timeout = timeout + system_ticks;
 
     if(swtimer_head == NULL) {
         swtimer->next = swtimer;
@@ -43,23 +45,23 @@ struct swtimer *swtimer_create(void (*func)(void *), void *arg, uint32_t timeout
         tmp = swtimer_head;
 
         do {
-            if(swtimer_head->timeout > timeout) {
+            if(swtimer_head->timeout >= __timeout) {
                 swtimer_head = swtimer;
                 break;
             }
-            if(swtimer_head->prev->timeout < timeout) {
+            if(swtimer_head->prev->timeout <= __timeout) {
                 break;
             }
 
             tmp = tmp->next;
-        } while(!((tmp->prev->timeout < timeout)&&(timeout < tmp->timeout)));
+        } while(!((tmp->prev->timeout <= __timeout)&&(__timeout <= tmp->timeout)));
 
         swtimer_add(swtimer, tmp->prev, tmp);
     }
 
     swtimer->func = func;
     swtimer->arg = arg;
-    swtimer->timeout = system_ticks + timeout;
+    swtimer->timeout = __timeout;
 
     return swtimer;
 }
@@ -93,19 +95,27 @@ int swtimer_delete(struct swtimer *swtimer)
  * Because the software timer is sorted by timeout from small to large,
  * system_ticks is also linearly increased,
  * so just check if the first software timer times out
+ * or other timeout time is the same as the first software timer
  */
 int swtimer_check(void)
 {
-    struct swtimer *tmp;
+    struct swtimer *next, *tmp;
 
-    tmp = swtimer_head;
-    if(tmp == NULL)
+    next = swtimer_head;
+    if(next == NULL)
         return -1;
 
-    if(system_ticks >= tmp->timeout) {
-        tmp->func(tmp->arg);
-        swtimer_delete(tmp);
-    }
+    do {
+        tmp = next;
+        if(system_ticks >= tmp->timeout) {
+            tmp->func(tmp->arg);
+            next = tmp->next;
+            swtimer_delete(tmp);
+        }
+
+        if((swtimer_head == NULL) || (tmp == next))
+            break;
+    } while(tmp->timeout == next->timeout);
 
     return 0;
 }
