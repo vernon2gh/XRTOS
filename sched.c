@@ -4,6 +4,36 @@
 extern void switch_to(struct context *next);
 
 static struct task *current_task; // alway point current task
+static struct task *idle_task;    // alway point idle task
+
+static void idle(void *param)
+{
+    uint32_t count;
+
+    while(1) {
+        printf("%s\n", __func__);
+        count = 2000 * 50000;
+        while (count--);
+    }
+}
+
+static void task_create_idle(void)
+{
+    struct task *task;
+    struct context *ctx;
+
+    task = byte_alloc(sizeof(struct task));
+    task->flag = TASK_READY;
+    task->priority = 255;
+    task->timeslice = second_to_ticks(1);
+
+    ctx = &task->ctx;
+    ctx->sp = (reg_t)(task->stack + (STACK_SIZE - 1));
+    ctx->epc = (reg_t)idle;
+    ctx->a0 = (reg_t)NULL;
+
+    idle_task = task;
+}
 
 void task_init(void)
 {
@@ -12,6 +42,8 @@ void task_init(void)
 
     /* init current task */
     current_task = NULL;
+
+    task_create_idle();
 }
 
 static void task_add(struct task *new, struct task *prev, struct task *next)
@@ -101,17 +133,28 @@ void task_exit(void)
  */
 int schedule(void)
 {
-    struct task *task, *tmp;
+    struct task *task, *next_task;
     struct context *context;
+    uint8_t idle_status = 0;
 
     task = current_task;
 
     if(task->flag != TASK_FIRST) {
-        tmp = task->next;
-        while(tmp->flag == TASK_SLEEPING)
-            tmp = tmp->next;
+        next_task = task->next;
 
-        current_task = tmp;
+        while(next_task->flag == TASK_SLEEPING) {
+            next_task = next_task->next;
+
+            if(next_task == task) {
+                idle_status = 1;
+                break;
+            }
+        }
+
+        if(idle_status)
+            next_task = idle_task;
+        else
+            current_task = next_task;
     }
 
     switch(task->flag) {
@@ -124,15 +167,17 @@ int schedule(void)
             break;
 
         case TASK_FIRST:
+            next_task = task;
+
         case TASK_READY:
         case TASK_RUNNING:
         default:
             task->flag = TASK_READY;
     }
 
-    context = &current_task->ctx;
-    current_task->flag = TASK_RUNNING;
-    current_task->timeout = system_ticks + current_task->timeslice;
+    context = &next_task->ctx;
+    next_task->flag = TASK_RUNNING;
+    next_task->timeout = system_ticks + next_task->timeslice;
     switch_to(context);
 
     return 0;
