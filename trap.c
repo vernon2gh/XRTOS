@@ -17,26 +17,22 @@ reg_t trap_handler(reg_t epc, reg_t cause, struct context *context)
     interrupt_exception = cause & 0x80000000;
 
     if(interrupt_exception) {
-        printf("Asynchronous trap: interrupt: code = %d\n", cause_code);
+        // printf("Asynchronous trap: interrupt: code = %d\n", cause_code);
 
         switch(cause_code) {
-            case 3:
-                printf("Machine software interrupt\n");
-
+            case MACHINE_SOFTWARE_INTERRUPT:
                 hartid = mhartid_read();
+
                 /* acknowledge a machine-level software interrupt */
                 clint_write(CLINT_MSIP(hartid), 0);
                 schedule();
                 break;
 
-            case 7:
-                printf("Machine timer interrupt\n");
-
+            case MACHINE_TIMER_INTERRUPT:
                 timer_handler();
                 break;
 
-            case 11:
-                printf("Machine external interrupt\n");
+            case MACHINE_EXTERNAL_INTERRUPT:
                 plic_machine_external_interrupt();
                 break;
 
@@ -45,19 +41,18 @@ reg_t trap_handler(reg_t epc, reg_t cause, struct context *context)
                 break;
         }
     } else {
-        printf("Synchronous trap: exception: code = %d\n", cause_code);
+        // printf("Synchronous trap: exception: code = %d\n", cause_code);
 
         switch(cause_code) {
-            case 5:
+            case LOAD_ACCESS_FAULT:
                 printf("Load access fault\n");
                 while(1);
                 break;
-            case 7:
+            case STORE_AMO_ACCESS_FAULT:
                 printf("Store/AMO access fault\n");
                 while(1);
                 break;
-            case 8:
-                printf("System call from User-mode level\n");
+            case SYSTEM_CALL_FROM_USER_LEVEL:
                 do_syscall(context);
                 pc += 4;
                 break;
