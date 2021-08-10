@@ -91,7 +91,7 @@ void user_task0(void *param)
     while (1) {
         printf("%s: running...\n", __func__);
         task_delay(second_to_ticks(1));
-        // task_exit();
+        task_exit();
     }
 }
 

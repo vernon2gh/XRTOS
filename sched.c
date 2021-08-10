@@ -234,6 +234,7 @@ void task_yield(void)
  */
 void task_check_timeout(void)
 {
-    if(system_ticks >= current_task->timeout)
+    if((system_ticks >= current_task->timeout) || \
+        (system_ticks >= idle_task->timeout))
         schedule();
 }
