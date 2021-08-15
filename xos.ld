@@ -34,9 +34,15 @@ SECTIONS
         PROVIDE(_bss_end = .);
     } > ram
 
+    .sbss : {
+        PROVIDE(_sbss_start = .);
+        *(.sbss)
+        PROVIDE(_sbss_end = .);
+    } > ram
+
     PROVIDE(_memory_start = ORIGIN(ram));
     PROVIDE(_memory_end = ORIGIN(ram) + LENGTH(ram));
 
-    PROVIDE(_heap_start = _bss_end);
+    PROVIDE(_heap_start = _sbss_end);
     PROVIDE(_heap_end = _memory_end);
 }

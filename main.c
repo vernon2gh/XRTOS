@@ -19,7 +19,7 @@ void delay(volatile int count)
 
 void swtimer_func(void *arg)
 {
-    printf("swtimer%d running...\n", (int)arg);
+    printf("swtimer%lld running...\n", (pointer_t)arg);
 }
 
 void kernel_task0(void *param)

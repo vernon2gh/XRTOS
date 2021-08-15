@@ -16,6 +16,9 @@
 #define TASK_SLEEPING   0x10
 
 struct context {
+	reg_t epc;
+
+	// reg_t zero; // it always is zero
 	reg_t ra;
 	reg_t sp;
 	reg_t gp;
@@ -47,8 +50,6 @@ struct context {
 	reg_t t4;
 	reg_t t5;
 	reg_t t6;
-
-	reg_t epc;
 };
 
 struct task {

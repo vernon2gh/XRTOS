@@ -1,10 +1,10 @@
 #include "pages.h"
 
-extern uint32_t heap_start;
-extern uint32_t heap_end;
+extern pointer_t heap_start;
+extern pointer_t heap_end;
 
-static uint32_t _page_start = 0;
-static uint32_t _page_end   = 0;
+static pointer_t _page_start = 0;
+static pointer_t _page_end   = 0;
 static uint32_t _num_pages  = 0;
 
 static inline void _clear_flag(struct page *page)
@@ -106,7 +106,7 @@ void page_free(void *p)
     struct page *page_bitmaps;
 
     page_bitmaps = (struct page *)heap_start;
-    page_bitmaps += ((uint32_t)p - _page_start) / PAGE_SIZE;
+    page_bitmaps += ((pointer_t)p - _page_start) / PAGE_SIZE;
 
     while(!_is_free(page_bitmaps)) {
         if(_is_last(page_bitmaps)) {

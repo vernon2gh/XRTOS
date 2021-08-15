@@ -9,12 +9,16 @@ void trap_init(void)
 
 reg_t trap_handler(reg_t epc, reg_t cause, struct context *context)
 {
-    reg_t pc, cause_code, interrupt_exception;
+    reg_t pc, cause_code;
+    bool interrupt_exception;
+    uint8_t arch_bits;
     int hartid;
 
+    arch_bits = ARCH_BITS;
+
     pc = epc;
-    cause_code = cause & 0x7FFFFFFF;
-    interrupt_exception = cause & 0x80000000;
+    cause_code = cause & ((0x1 << (arch_bits - 1)) - 1);
+    interrupt_exception = cause & (0x1 << (arch_bits - 1));
 
     if(interrupt_exception) {
         // printf("Asynchronous trap: interrupt: code = %d\n", cause_code);

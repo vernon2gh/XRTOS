@@ -35,7 +35,8 @@ static inline uint32_t pow(uint32_t base, uint32_t order)
 void *byte_alloc(uint32_t nbytes)
 {
     void *tmp;
-    uint32_t step, num, current;
+    uint32_t step, num;
+    pointer_t current;
     int order = 0, i;
 
     while(nbytes / pow(2, order))
@@ -58,15 +59,15 @@ void *byte_alloc(uint32_t nbytes)
         bytes_cache[order].freelist = tmp;
 
         for (i = 0; i < num; i++) {
-            current = (uint32_t)tmp + i * step;
-            *(uint32_t *)current = current + step;
+            current = (pointer_t)tmp + i * step;
+            *(pointer_t *)current = current + step;
         }
 
-        *(uint32_t *)current = (uint32_t)NULL;
+        *(pointer_t *)current = (pointer_t)NULL;
     }
 
     tmp = bytes_cache[order].freelist;
-    bytes_cache[order].freelist = (void *)(*(uint32_t *)tmp);
+    bytes_cache[order].freelist = (void *)(*(pointer_t *)tmp);
 
     return tmp;
 }
@@ -90,6 +91,6 @@ void byte_free(void *p, uint32_t nbytes)
     if(order < 2)
         order = 2;
 
-    *(uint32_t *)p = (uint32_t)bytes_cache[order].freelist;
+    *(pointer_t *)p = (pointer_t)bytes_cache[order].freelist;
     bytes_cache[order].freelist = p;
 }
