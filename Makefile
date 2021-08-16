@@ -1,7 +1,9 @@
-CROSS_COMPILE = riscv64-unknown-elf-
-CFLAGS = -nostdlib -fno-builtin -march=rv32ima -mabi=ilp32 -g -Wall -D CONFIG_USER_MODE
+archbits = 32
 
-QEMU = qemu-system-riscv32
+CROSS_COMPILE = riscv$(archbits)-unknown-elf-
+CFLAGS = -nostdlib -fno-builtin -mcmodel=medany -g -Wall -D CONFIG_ARCH$(archbits) -D CONFIG_USER_MODE
+
+QEMU = qemu-system-riscv$(archbits)
 QFLAGS = -nographic -smp 1 -machine virt -bios none
 
 CC = ${CROSS_COMPILE}gcc
