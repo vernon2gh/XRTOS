@@ -27,6 +27,17 @@ static inline uint32_t pow(uint32_t base, uint32_t order)
     return tmp;
 }
 
+static inline uint32_t get_order(uint32_t nbytes, uint32_t base)
+{
+    uint32_t order = 0;
+
+    while(nbytes /= base) {
+        order++;
+    }
+
+    return order;
+}
+
 /*
  * Allocate bytes from different 2^order list
  *
@@ -37,7 +48,7 @@ void *byte_alloc(uint32_t nbytes)
     void *tmp;
     uint32_t step, num;
     pointer_t current;
-    int order = 0, i;
+    int mini_order, order = 0, i;
 
     while(nbytes / pow(2, order))
         order++;
@@ -48,8 +59,9 @@ void *byte_alloc(uint32_t nbytes)
         return page_alloc(i);
     }
 
-    if(order < 2)
-        order = 2;
+    mini_order = get_order(sizeof(pointer_t), 2);
+    if(order < mini_order)
+        order = mini_order;
 
     step = pow(2, order);
     num = PAGE_SIZE/step;
@@ -76,20 +88,21 @@ void *byte_alloc(uint32_t nbytes)
  * Free bytes from different 2^order list
  *
  * p     : at-first address of byte for want to free
- * nbytes: the number of byte for want to allocate
+ * nbytes: the number of byte for want to free
  */
 void byte_free(void *p, uint32_t nbytes)
 {
-    int order = 0;
+    int mini_order, order = 0;
 
-    while(nbytes /= 2)
+    while(nbytes / pow(2, order))
         order++;
 
     if(order >= PAGE_ORDER)
         return page_free(p);
 
-    if(order < 2)
-        order = 2;
+    mini_order = get_order(sizeof(pointer_t), 2);
+    if(order < mini_order)
+        order = mini_order;
 
     *(pointer_t *)p = (pointer_t)bytes_cache[order].freelist;
     bytes_cache[order].freelist = p;
