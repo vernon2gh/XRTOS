@@ -44,7 +44,7 @@ void page_init(void)
 
     _page_start = _align_page(heap_start + 8 * PAGE_SIZE);
     _page_end = heap_end;
-    _num_pages = (_page_end - _page_start) / PAGE_SIZE - 8;
+    _num_pages = (_page_end - _page_start) / PAGE_SIZE;
 
     page_bitmaps = (struct page *)heap_start;
 
